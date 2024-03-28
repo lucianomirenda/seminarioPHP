@@ -8,6 +8,21 @@ require __DIR__ . '/vendor/autoload.php';
 
 $app = AppFactory::create();
 $app->addRoutingMiddleware();
+
+function getConnection(){
+    $dbhost="db";
+    $dbname="seminariophp";
+    $dbuser="seminariophp";
+    $dbpass="seminariophp";
+
+   
+    $connection = new PDO ("mysql:host=$dbhost;dbname=$dbname",$dbuser,$dbpass);
+    $connection->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+
+    return $connection;
+}
+
+
 $app->addErrorMiddleware(true, true, true);
 $app->add( function ($request, $handler) {
     $response = $handler->handle($request);
@@ -22,5 +37,38 @@ $app->add( function ($request, $handler) {
 
 // ACÁ VAN LOS ENDPOINTS
 
-$app->run();
+$app->get('/tipos_propiedad/listar',function(Request $request,Response $response){
+    $connection = getConnection();
 
+    try {
+        $query = $connection->query('SELECT * FROM localidades');
+        $tipos = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'data' => $tipos
+        ]);
+    
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type','applicatoin/json');
+    
+    } catch (PDOException $e) {
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 400,
+            'data' => $tipos
+        ]);
+    }
+});
+
+
+$app->get('/',function (Request $request, Response $response){
+    $response->getBody()->write('hola');
+    $connection = getConnection();
+    return $response;
+});
+
+
+
+$app->run();
