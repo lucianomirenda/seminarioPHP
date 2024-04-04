@@ -56,6 +56,7 @@ $app->get('/tipos_propiedad/listar',function (Request $request, Response $respon
 
         $response ->getBody()->write($payload);
         return $response -> withHeader ('Content+Type','application/json');
+        
 } catch (PDOException $e){
     $payload = json_encode([
         'status'=> 'success',
