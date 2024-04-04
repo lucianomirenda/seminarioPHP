@@ -15,6 +15,8 @@ function getConnection(){
     $dbuser="seminariophp";
     $dbpass="seminariophp";
 
+
+    
     $connection = new PDO ("mysql:host=$dbhost;dbname=$dbname",$dbuser,$dbpass);
     $connection->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 
@@ -56,7 +58,7 @@ $app->get('/tipos_propiedad/listar',function (Request $request, Response $respon
 
         $response ->getBody()->write($payload);
         return $response -> withHeader ('Content+Type','application/json');
-        
+
 } catch (PDOException $e){
     $payload = json_encode([
         'status'=> 'success',
@@ -66,8 +68,64 @@ $app->get('/tipos_propiedad/listar',function (Request $request, Response $respon
     $response ->getBody()->write ($payload);
     return $response -> withHeader('Content-Type','application/json');
 } 
-
 });
+
+$app->get('/localidades/listar',function (Request $request, Response $response){
+    $connection = getConnection();
+    try{
+        $query = $connection->query('SELECT * FROM localidades');
+        $tipos = $query -> fetchAll(PDO::FETCH_ASSOC);
+
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'data' => $tipos
+
+        ]);
+
+        $response ->getBody()->write($payload);
+        return $response -> withHeader('Content+Type','application/json');
+    
+    } catch (PDOException $e){
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 400,
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response-> withHeader('Content-Type','application/json');
+
+    }
+});
+
+$app->get('/inquilinos/listar',function (Request $request, Response $response){
+    $connection = getConnection();
+    try{
+        $query = $connection->query('SELECT * FROM inquilinosdokc');
+        $tipos = $query -> fetchAll(PDO::FETCH_ASSOC);
+
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'data' => $tipos
+
+        ]);
+
+        $response ->getBody()->write($payload);
+        return $response -> withHeader('Content+Type','application/json');
+    
+    } catch (PDOException $e){
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 400,
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response-> withHeader('Content-Type','application/json');
+
+    }
+});
+
 
 
 $app->run();
