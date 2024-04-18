@@ -23,7 +23,7 @@ function getConnection(){
     return $connection;
 }
 
-
+$app->addBodyParsingMiddleware();
 $app->addErrorMiddleware(true, true, true);
 $app->add( function ($request, $handler) {
     $response = $handler->handle($request);
@@ -69,6 +69,98 @@ $app->get('/tipos_propiedad',function (Request $request, Response $response){
     return $response -> withHeader('Content-Type','application/json');
 } 
 });
+
+$app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
+
+    $connection = getConnection();
+
+    try{
+
+        $id = $request->getAttribute('id');
+
+        $stmt = $connection->prepare("SELECT * FROM tipo_propiedades WHERE id = :id");
+        $stmt->bindParam(':id',$id);
+        $stmt->execute();
+        
+        if($stmt->rowCount() > 0){
+            
+            $nombre = $request->getParsedBody()['nombre'];
+            
+                    //chequeo que no este vacio
+            if(isset($nombre)&&!empty($nombre)){
+
+                if(strlen($nombre) <= 50){
+                    //chequeo si el nombre existe
+                    $stmt = $connection->prepare("SELECT COUNT(*) FROM tipo_propiedades WHERE nombre = :nombre");
+                    $stmt->bindParam(':nombre',$nombre,PDO::PARAM_STR);
+                    $stmt->execute();
+                    $count = $stmt->fetchColumn();
+    
+                    if($count > 0){
+                        $payload = json_encode([
+                            'status' => 'error',
+                            'code' => 400,
+                            'message' => 'el nombre ya existe en la base de datos' 
+                        ]);
+                    } else {
+                        //actualizo la localidad en la base de datos
+
+                        $stmt = $connection->prepare("UPDATE tipo_propiedades SET nombre = :nombre WHERE id = :id");
+                        $stmt->bindParam(':nombre',$nombre);
+                        $stmt->bindParam(':id', $id);
+                        $stmt->execute();
+        
+                        $payload = json_encode([
+                            'message'=> 'El tipo propiedad se actualizo correctamente!',
+                            'status' => 'success',
+                            'code' => 200,
+                            'data' => $nombre
+                        ]);
+                    }
+                } else {
+
+                    $payload = json_encode([
+                        'status' => 'error',
+                        'code' => 400,
+                        'message' => 'Ingreso más caracteres de los habilitados para el campo nombre.'
+                    ]);
+                }
+            } else {
+                $payload = json_encode ([
+                    'status' => 'error',
+                    'code' => 400,
+                    'message' => 'No se ingreso el nombre.'
+                ]);
+            }
+        } else {
+
+            $payload = json_encode([
+                'message' => 'No existe una localidad con ese id',
+                'status' => 'Error',
+                'code' => 400,
+            ]);
+
+        }
+
+    
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type','application/json');
+
+
+    } catch (PDOException $e){
+        $json = json_encode([
+            'status' => 'success',
+            'code' => 400,
+        ]);
+
+        $response->getBody()->write($json);
+        return $response-> withHeader('Content-Type','application/json');
+
+    }
+
+
+});
+
 
 $app->post('/tipos_propiedad',function(Request $request,Response $response){
 
@@ -154,7 +246,7 @@ $app->get('/propiedades', function (Request $request, Response $response){
 
         $dataParams = $request->getParams();
         $dataToBind = [];
-        $sql = 'SELECT * FROM propiedades p
+        $sql = 'SELECT p.id idprop FROM propiedades p
                            INNER JOIN localidades l ON p.localidad_id = l.id
                             INNER JOIN tipo_propiedades tp ON p.tipo_propiedad_id = tp.id WHERE 1 = 1 ');
 
@@ -202,6 +294,7 @@ $app->get('/propiedades', function (Request $request, Response $response){
 } 
 });
 */
+
 
 $app->get('/localidades',function (Request $request, Response $response){
     $connection = getConnection();
@@ -300,6 +393,254 @@ $app->post('/localidades', function(Request $request,Response $response){
 
 });
 
+
+$app->put('/localidades/{id}', function(Request $request,Response $response){
+
+    $connection = getConnection();
+
+    try{
+
+        $id = $request->getAttribute('id');
+
+        $stmt = $connection->prepare("SELECT * FROM localidades WHERE id = :id");
+        $stmt->bindParam(':id',$id);
+        $stmt->execute();
+        
+        if($stmt->rowCount() > 0){
+            
+            $nombre = $request->getParsedBody()['nombre'];
+            
+            //chequeo que no este vacio
+            if(isset($nombre)&&!empty($nombre)){
+
+                if(strlen($nombre) <= 50){
+                    //chequeo si el nombre existe
+                    $stmt = $connection->prepare("SELECT COUNT(*) FROM localidades WHERE nombre = :nombre");
+                    $stmt->bindParam(':nombre',$nombre,PDO::PARAM_STR);
+                    $stmt->execute();
+                    $count = $stmt->fetchColumn();
+    
+                    if($count > 0){
+                        $payload = json_encode([
+                            'status' => 'error',
+                            'code' => 400,
+                            'message' => 'el nombre ya existe en la base de datos' 
+                        ]);
+                    } else {
+                        //actualizo la localidad en la base de datos
+
+                        $stmt = $connection->prepare("UPDATE localidades SET nombre = :nombre WHERE id = :id");
+                        $stmt->bindParam(':nombre',$nombre);
+                        $stmt->bindParam(':id', $id);
+                        $stmt->execute();
+        
+                        $payload = json_encode([
+                            'message'=> 'La localidad se actualizo correctamente!',
+                            'status' => 'success',
+                            'code' => 200,
+                            'data' => $nombre
+                        ]);
+                    }
+                } else {
+
+                    $payload = json_encode([
+                        'status' => 'error',
+                        'code' => 400,
+                        'message' => 'Ingreso más caracteres de los habilitados para el campo nombre.'
+                    ]);
+                }
+            } else {
+                $payload = json_encode ([
+                    'status' => 'error',
+                    'code' => 400,
+                    'message' => 'No se ingreso el nombre.'
+                ]);
+            }
+        } else {
+
+            $payload = json_encode([
+                'message' => 'No existe una localidad con ese id',
+                'status' => 'Error',
+                'code' => 400,
+            ]);
+
+        }
+
+    
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type','application/json');
+
+
+    } catch (PDOException $e){
+        $json = json_encode([
+            'status' => 'success',
+            'code' => 400,
+        ]);
+
+        $response->getBody()->write($json);
+        return $response-> withHeader('Content-Type','application/json');
+
+    }
+
+
+});
+
+
+$app->put('/inquilinos/{id}', function(Request $request,Response $response){    
+
+    $connection = getConnection();
+
+    try{
+
+        $id = $request->getAttribute('id');
+
+        $stmt = $connection->prepare("SELECT * FROM localidades WHERE id = :id");
+        $stmt->bindParam(':id',$id);
+        $stmt->execute();
+
+        //chequeo que exista el id del inquilino
+        if($stmt->rowCount() > 0){
+
+            $params = $request->getParsedBody();
+            
+
+            //chequeo que ninguno de los campos que mando para modificar este vacio
+            $keys = ["nombre","apellido","documento","email","activo"];
+            $emptyFields = [];
+        
+            //mientras exista la calve y este vacio, la agrego a emptyFields.
+            foreach ($keys as $key) {
+                if (isset($params[$key]) && empty($params[$key])) {
+                    $emptyFields[] = $key;
+                }
+            }
+            
+            //si habia un cambio vacio, no entra, y envia caul es.
+            if(count($emptyFields) == 0){
+
+                //chequeo la cantidad de caracteres de los nuevos campos
+                $sizeErrorKeys = [];
+                $maxChars = [
+                    "nombre" => 25,
+                    "apellido" => 15,
+                    "email" => 20
+                ];
+        
+                foreach($params as $key => $value){
+                    if(in_array($key,array_keys($maxChars))){
+                        if(strlen($value) > $maxChars[$key]){
+                            $sizeErrorKeys[] = $key;
+                        }
+                    }
+                }
+                
+                if(empty($sizeErrorKeys)){
+
+                    $documentoNoEsta = true;
+                    //chequeo si traje un valor en el campo documento, en caso de hacerlo, chequeo si ya esta en la base de datos.
+                    if(isset($params['documento'])){
+
+                        $stmtDocumento = $connection->prepare("SELECT COUNT(*) FROM inquilinos WHERE documento = :documento");
+                        $stmtDocumento->bindParam(':documento', $params['documento']);
+                        $stmtDocumento->execute();
+                        $documentoNoEsta = $stmtDocumento->fetchColumn() == 0;
+                        
+                    }
+
+                    //en caso de de que no se haya mandado ningun documento sigo.En caso de que si y no este en la base de datos también.
+                    //solamente cuando el documento se mando y ya esta en la base de datos esta condicion resulta falsa.
+                    if($documentoNoEsta){
+                        
+                        //ahora que paso todas las pruebas, genero la consulta sql dinámicamente
+
+                        
+                        $sql = "UPDATE inquilinos SET ";
+
+                        foreach ($params as $campo => $valor) {
+                            $sql .= "`$campo` = :$campo, ";
+                        }
+
+                        // eliminamos la coma al final
+                        $sql = rtrim($sql, ', ');
+
+                        $sql .= " WHERE id = :id";
+
+                        $stmt = $connection->prepare($sql);
+
+                        //vinculo los valores a los parámetros
+                        $stmt->bindParam(':id', $id);
+                        foreach ($params as $campo => $valor) {
+                            $stmt->bindParam(":$campo", $params[$campo]);
+                        }
+
+                        $stmt->execute();
+
+                        
+                        $payload = json_encode([
+                            'message' => 'El inquilino con id '.$id." actualizo los siguientes datos correctamente!",
+                            'status' => 'success',
+                            'code' => 200,
+                            'data' => $params
+                        ]);
+
+                    } else {
+                        $payload = json_encode([
+                            'message' => 'Este documento ya se encuentra en la base de datos.',
+                            'status' => 'Error',
+                            'code' => 400,
+                        ]);
+
+                    }
+
+                } else {
+
+                    $payload = json_encode([
+                        'message' => 'Los siguientes campos exceden la cantidad de caracteres habilitada',
+                        'status' => 'Error',
+                        'code' => 400,
+                        'data' => $sizeErrorKeys
+                    ]);
+                
+
+                } 
+                    
+            } else {
+                $payload = json_encode([
+                    'message' => 'Los siguientes campos estan vacios.',
+                    'status' => 'Error',
+                    'code' => 400,
+                    'data' => $emptyFields
+                ]);
+            }
+
+        } else {
+
+            $payload = json_encode([
+                'message' => 'No existe un inquilino con ese id',
+                'status' => 'Error',
+                'code' => 400,
+            ]);
+
+        }
+    
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type','application/json');
+
+
+    } catch (PDOException $e){
+        $json = json_encode([
+            'status' => 'Error',
+            'code' => 400,
+        ]);
+
+        $response->getBody()->write($json);
+        return $response-> withHeader('Content-Type','application/json');
+
+    }
+
+});
+
+
 $app->post('/inquilinos',function(Request $request,Response $response){
 
     $connection = getConnection();
@@ -308,7 +649,7 @@ $app->post('/inquilinos',function(Request $request,Response $response){
 
     //verfico que se esten todos los parámetros necesarios para realizar el insert
 
-    $requiredKeys = ["nombre","apellido","documento","email"];
+    $requiredKeys = ["nombre","apellido","documento","email","activo"];
     $missingKeys = []; //almaceno las claves que faltan
 
     foreach($params as $key => $value){
@@ -467,8 +808,6 @@ $app->get('/inquilinos/{id}',function (Request $request, Response $response){
 
     }
 });
-
-
 
 
 $app->run();
