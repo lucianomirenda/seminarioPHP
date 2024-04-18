@@ -750,6 +750,7 @@ $app->post('/inquilinos',function(Request $request,Response $response){
 });
 
 $app->get('/inquilinos',function (Request $request, Response $response){
+  
     $connection = getConnection();
     try{
         $query = $connection->query('SELECT * FROM inquilinos');
@@ -778,6 +779,7 @@ $app->get('/inquilinos',function (Request $request, Response $response){
 });
 
 $app->get('/inquilinos/{id}',function (Request $request, Response $response){
+    
     $connection = getConnection();
 
     try{
@@ -820,8 +822,9 @@ $app -> post ('/propiedades', function (Request $request, Response $response){
     $params = $request->getParsedBody();
     
     $requiredKeys = ["domicilio","localidad_id","cantidad_huespedes","fecha_inicio_disponibilidad","cantidad_dias","disponible","valor_noche","tipo_propiedad_id"];
+    
     $missingKeys = [];
-
+   
 
     foreach($requiredKeys as $key){
         if(!array_key_exists($key, $params)){
@@ -833,20 +836,21 @@ $app -> post ('/propiedades', function (Request $request, Response $response){
             }
         }
     }
+ 
     
     if(empty($missingKeys)){
 
         $stmt = $connection->prepare("SELECT * FROM localidades WHERE id = :localidad_id");
-        $stmt->bindParam(':localidad_id',$params['id']);
+        $stmt->bindParam(':localidad_id',$params['localidad_id']);
         $stmt->execute();
 
-        if (!$stmt->rowCount() > 0) {
+        if ($stmt->rowCount() > 0) {
 
             $stmt = $connection->prepare("SELECT * FROM tipo_propiedades WHERE id = :tipo_propiedad_id");
-            $stmt->bindParam(':tipo_propiedad_id',$params['id']);
+            $stmt->bindParam(':tipo_propiedad_id',$params['tipo_propiedad_id']);
             $stmt->execute();
 
-            if (!$stmt->rowCount() > 0) {
+            if ($stmt->rowCount() > 0) {
             
                 $stmt = $connection->prepare("INSERT INTO propiedades(domicilio,localidad_id,cantidad_habitaciones,cantidad_banios,cochera,cantidad_huespedes,fecha_inicio_disponibilidad,cantidad_dias,disponible,valor_noche,tipo_propiedad_id,imagen,tipo_imagen)
                                             VALUES (:domicilio, :localidad_id, :cantidad_habitaciones, :cantidad_banios, :cochera, :cantidad_huespedes, :fecha_inicio_disponibilidad, :cantidad_dias, :disponible, :valor_noche, :tipo_propiedad_id, :imagen, :tipo_imagen)");
