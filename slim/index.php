@@ -117,37 +117,29 @@ $app->post('/tipos_propiedad',function(Request $request,Response $response){
                     'message' => 'el nombre se inserto correctamente.'
                 ]);
 
+                $response-> withHeader('Content+Type','application/json');
+
             } else {
-                
-                $payload = json_encode([
-                    'status' => "error",
-                    'code' => "400",
-                    'message' => 'el nombre ya existe en la base de datos.'
-                ]);
-
+                $errores = "El nombre ya existe en la base de datos y debe ser único. ";
             }
-
         } catch (PDOException $e){
-            $payload = json_encode([
-                'status' => 'error',
-                'code' => 400,
-            ]);
-
-            $response->getBody()->write($payload);
-            return $response-> withHeader('Content-Type','application/json');
-
+            $errores = "PDOException";
         }
 
-    } else {
+    }
+
+    if(!empty($errores)){
         $payload = json_encode([
             'status' => 'error',
             'code' => 400,
             'message' => $errores
         ]);
+        $response-> withHeader('Content-Type','application/json');
+
     }
 
     $response->getBody()->write($payload);
-    return $response->withHeader('Content+Type','application/json');
+    return $response;
 
 });
 
@@ -200,6 +192,14 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
                     $stmt->bindParam(':id',$id);
                     $stmt->execute();
 
+                    $payload = json_encode([
+                        'status' => "success",
+                        'code' => "200",
+                        'message' => 'el nombre se actualizo correctamente.'
+                    ]);
+                    
+                    $response->withHeader('Content+Type','application/json');
+
                 } else {
                     $error = "el nombre ya se encuentra en la base de datos y debe ser único";
                 }
@@ -209,35 +209,23 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
             $error = "el id no se encuentra en la base de datos";
         }
 
-        if(empty($error)){
-            $payload = json_encode([
-                'status' => "success",
-                'code' => "200",
-                'message' => 'el nombre se actualizo correctamente.'
-            ]);
-
-        } else {
-            $payload = json_encode([
-                'status' => "error",
-                'code' => "400",
-                'message' => $error
-            ]);
-        }
-
-        $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type','application/json');
-
-
     } catch (PDOException $e){
-        $payload = json_encode([
-            'status' => 'success',
-            'code' => 400,
-        ]);
+        $error = "PDOException";
+    }
 
-        $response->getBody()->write($paylaod);
-        return $response-> withHeader('Content-Type','application/json');
+    if(!empty($error)){
+        
+        $payload = json_encode([
+            'status' => "error",
+            'code' => "400",
+            'message' => $error
+        ]);
+        $response-> withHeader('Content-Type','application/json');
 
     }
+
+    $response->getBody()->write($payload);
+    return $response;
 
 
 });
@@ -316,37 +304,31 @@ $app->post('/localidades',function(Request $request,Response $response){
                     'message' => 'el nombre se inserto correctamente.'
                 ]);
 
+                $response->withHeader('Content+Type','application/json');
+
             } else {
-                
-                $payload = json_encode([
-                    'status' => "error",
-                    'code' => "400",
-                    'message' => 'el nombre ya existe en la base de datos.'
-                ]);
-
+                $errores = "El nombre ya existe en la base de datos";
             }
-
         } catch (PDOException $e){
-            $payload = json_encode([
-                'status' => 'error',
-                'code' => 400,
-            ]);
-
-            $response->getBody()->write($payload);
-            return $response-> withHeader('Content-Type','application/json');
-
+            $errores = "PDOException";
         }
 
-    } else {
+    } 
+
+    if(!empty($errores)){
+
         $payload = json_encode([
             'status' => 'error',
             'code' => 400,
             'message' => $errores
         ]);
+
+        $response->withHeader('Content-Type','application/json');
     }
 
+
     $response->getBody()->write($payload);
-    return $response->withHeader('Content+Type','application/json');
+    return $response;
 
 });
 
@@ -369,7 +351,7 @@ $app->put('/localidades/{id}', function(Request $request,Response $response){
             $data = $request->getParsedBody();
 
             if(isset($data['nombre'])){
-
+                
                 $nombre = $data['nombre'];
 
                 if(empty($nombre)){
@@ -399,6 +381,14 @@ $app->put('/localidades/{id}', function(Request $request,Response $response){
                     $stmt->bindParam(':id',$id);
                     $stmt->execute();
 
+                    $payload = json_encode([
+                        'status' => "success",
+                        'code' => "200",
+                        'message' => 'el nombre se actualizo correctamente.'
+                    ]);
+                    
+                    $response->withHeader('Content+Type','application/json');
+
                 } else {
                     $error = "el nombre ya se encuentra en la base de datos y debe ser único";
                 }
@@ -408,35 +398,23 @@ $app->put('/localidades/{id}', function(Request $request,Response $response){
             $error = "el id no se encuentra en la base de datos";
         }
 
-        if(empty($error)){
-            $payload = json_encode([
-                'status' => "success",
-                'code' => "200",
-                'message' => 'el nombre se actualizo correctamente.'
-            ]);
-
-        } else {
-            $payload = json_encode([
-                'status' => "error",
-                'code' => "400",
-                'message' => $error
-            ]);
-        }
-
-        $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type','application/json');
-
-
     } catch (PDOException $e){
-        $payload = json_encode([
-            'status' => 'success',
-            'code' => 400,
-        ]);
+        $error = "PDOException";
+    }
 
-        $response->getBody()->write($paylaod);
-        return $response-> withHeader('Content-Type','application/json');
+    if(!empty($error)){
+        
+        $payload = json_encode([
+            'status' => "error",
+            'code' => "400",
+            'message' => $error
+        ]);
+        $response-> withHeader('Content-Type','application/json');
 
     }
+
+    $response->getBody()->write($payload);
+    return $response;
 
 
 });
@@ -715,35 +693,24 @@ $app->post('/inquilinos',function(Request $request,Response $response){
                 $response->withHeader('Content+Type','application/json');
 
             } else {
-                
-                $payload = json_encode([
-                    'message' => 'Ya existe un inquilino con ese documento.',
-                    'status' => 'Error',
-                    'code' => 400,
-                ]);
 
-                $response-> withHeader('Content-Type','application/json');
+                $errores[] = "Ya existe un inquilino con ese documento y este debe ser único.";
             }
 
         } catch (PDOException $e){
-            
-            $payload = json_encode([
-            'status' => 'error',
-            'code' => 400,
-            ]);
-            
-            $response-> withHeader('Content-Type','application/json');
+            $errores = "PDOException";
         }
-    } else {
+    }
 
+    if(!empty($errores)){
         $payload = json_encode([
             'status' => 'Error',
             'code' => 400,
             'message' => $errores
         ]);
-
         $response-> withHeader('Content-Type','application/json');
     }
+
 
     $response->getBody()->write($payload);
     return $response;
