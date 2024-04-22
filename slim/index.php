@@ -230,6 +230,43 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
 
 });
 
+$app->delete('/tipos_propiedad/{id}', function (Request $request, Response $response) {
+    $id = (int) $request->getAttribute('id');
+    try {
+    $connection = getConnection();
+        
+        
+    $consultaVerificacion = $connection->prepare('SELECT COUNT(*) FROM propiedades WHERE tipo_propiedad_id = :id');
+    $consultaVerificacion->bindParam(':id', $id, PDO::PARAM_INT);
+    $consultaVerificacion->execute();
+    
+    $registrosReferenciados = $consultaVerificacion->fetchColumn();
+
+        if ($registrosReferenciados > 0) {
+            $response -> getBody() ->write(json_encode("El tipo de propiedad no puede eliminarse porque está referenciado en la tabla 'propiedades'."));
+            return $response->withStatus(409); // Conflicto
+                            
+        }else{
+                $query = $connection->prepare('DELETE FROM tipo_propiedades WHERE id =:id');
+                $query->bindParam(':id', $id, PDO::PARAM_INT);
+                $query->execute();
+
+                $deletedRows = $query->rowCount();
+
+                if ($deletedRows > 0) {
+                    $response -> getBody() -> write(json_encode("Tipo de propiedad eliminado con exito"));
+                    return $response->withStatus(200);
+                } else {
+                    $response -> getBody() -> write(json_encode("tipo de propiedad no encontrado"));
+                    return $response->withStatus(404); // No encontrado
+                }
+        }
+    } catch (Exception $e) {
+            $response->getBody()->write(json_encode(['Error'=>$e->getMessage()]));
+            return $response->withStatus(500);
+                }
+});
+
 $app->get('/localidades',function (Request $request, Response $response){
    
     try{
@@ -419,6 +456,43 @@ $app->put('/localidades/{id}', function(Request $request,Response $response){
 
 });
 
+$app->delete('/localidades/{id}', function (Request $request, Response $response) {
+    $id = (int) $request->getAttribute('id');
+    try {
+    $connection = getConnection();
+        
+        
+    $consultaVerificacion = $connection->prepare('SELECT COUNT(*) FROM propiedades WHERE localidad_id = :id');
+    $consultaVerificacion->bindParam(':id', $id, PDO::PARAM_INT);
+    $consultaVerificacion->execute();
+    
+    $registrosReferenciados = $consultaVerificacion->fetchColumn();
+
+        if ($registrosReferenciados > 0) {
+            $response -> getBody() ->write(json_encode("La localidad no puede eliminarse porque está referenciado en la tabla 'propiedades'."));
+            return $response->withStatus(409); // Conflicto
+                            
+        }else{
+                $query = $connection->prepare('DELETE FROM localidades WHERE id =:id');
+                $query->bindParam(':id', $id, PDO::PARAM_INT);
+                $query->execute();
+
+                $deletedRows = $query->rowCount();
+
+                if ($deletedRows > 0) {
+                    $response -> getBody() -> write(json_encode("Localidad eliminado con exito"));
+                    return $response->withStatus(200);
+                } else {
+                    $response -> getBody() -> write(json_encode("Localidad no encontrada"));
+                    return $response->withStatus(404); // No encontrado
+                }
+        }
+    } catch (Exception $e) {
+            $response->getBody()->write(json_encode(['Error'=>$e->getMessage()]));
+            return $response->withStatus(500);
+                }
+});
+
 $app->get('/inquilinos',function (Request $request, Response $response){
   
     try{
@@ -485,131 +559,6 @@ $app->get('/inquilinos/{id}',function (Request $request, Response $response){
     }
 });
 
-/*
-$app->post('/inquilinos',function(Request $request,Response $response){
-    
-    try{
-        
-        $connection = getConnection();
-        
-        $params = $request->getParsedBody();
-        
-        //verfico que se esten todos los parámetros necesarios para realizar el insert
-        
-        $requiredKeys = ["nombre","apellido","documento","email","activo"];
-        $missingKeys = []; //almaceno las claves que faltan
-        
-        
-        foreach($requiredKeys as $key){
-            if(!array_key_exists($key, $params)){
-                $missingKeys[] = $key;
-            } else {
-                $value = $params[$key];
-                if(empty($value)){
-                    $missingKeys[] = $key; 
-                }
-            }
-        }
-
-        if(empty($missingKeys)){
-            //no falta ninguna clave
-            //corroborar que el tamaño de los strings sea el correspondiente. 
-            
-            $sizeErrorKeys = [];
-            $maxChars = [
-                "nombre" => 25,
-                "apellido" => 15,
-                "email" => 20
-            ];
-
-            foreach($params as $key => $value){
-                if(in_array($key,array_keys($maxChars))){
-                    if(strlen($value) > $maxChars[$key]){
-                        $sizeErrorKeys[] = $key;
-                    }
-                }
-            }
-
-            if(empty($sizeErrorKeys)){
-                //ningun string excede su tamaño 
-                //ahora consulto si el documento ya se encuentra en la base de datos
-                
-                $stmt = $connection->prepare("SELECT * FROM inquilinos WHERE documento = :documento");
-                $stmt->bindParam(':documento',$params['documento']);
-                $stmt->execute();
-                
-                if(!$stmt->rowCount() > 0){
-                    // no existe ningun inquilino con ese documento
-                    // procedo a insertar al usuario en la base de datos
-                    
-                    $stmt = $connection->prepare("INSERT INTO inquilinos (nombre,apellido,email,documento,activo)
-                                                VALUES (:nombre,:apellido,:email,:documento,:activo)");
-                    
-                    $stmt->bindParam(':nombre',$params['nombre']);
-                    $stmt->bindParam(':apellido',$params['apellido']);
-                    $stmt->bindParam(':email',$params['email']);
-                    $stmt->bindParam(':documento',$params['documento']);
-                    $stmt->bindParam(':activo',$params['activo']);
-                    $stmt->execute();
-                    
-                    $payload = json_encode([
-                        'message' => 'El usuario se inserto en la base de datos correctamente.',
-                        'status' => 'success',
-                        'code' => 201,
-                        'data' => $params
-                    ]);
-        
-                    
-                } else {
-                    
-                    $payload = json_encode([
-                        'message' => 'Ya existe un inquilino con ese documento.',
-                        'status' => 'Error',
-                        'code' => 400,
-                    ]);
-                }
-            } else {
-
-                $payload = json_encode([
-                    'message' => 'Los siguientes campos exceden la cantidad de caracteres habilitada',
-                    'status' => 'Error',
-                    'code' => 400,
-                    'data' => $sizeErrorKeys
-                ]);
-            }
-            
-
-        } else {
-
-            $payload = json_encode([
-                'message' => 'Falta completar los siguientes campos',
-                'status' => 'Error',
-                'code' => 400,
-                'data' => $missingKeys
-            ]);
-
-            $data = 'Faltan los datos: ' . implode(', ',$missingKeys);
-        }
-
-        $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type','application/json');
-        
-    } catch (PDOException $e){
-        
-        $json = json_encode([
-        'status' => 'error',
-        'code' => 400,
-
-        $response->getBody()->write($json);
-        return $response-> withHeader('Content-Type','application/json');
-
-    ]);
-
-    
-    }
-
-});
-*/
 
 $app->post('/inquilinos',function(Request $request,Response $response){
         
@@ -852,7 +801,42 @@ $app->put('/inquilinos/{id}', function(Request $request,Response $response){
 
 });
 
+$app->delete('/inquilinos/{id}', function (Request $request, Response $response) {
+    $id = (int) $request->getAttribute('id');
+    try {
+    $connection = getConnection();
+        
+        
+    $consultaVerificacion = $connection->prepare('SELECT COUNT(*) FROM reservas WHERE inquilino_id = :id');
+    $consultaVerificacion->bindParam(':id', $id, PDO::PARAM_INT);
+    $consultaVerificacion->execute();
+    
+    $registrosReferenciados = $consultaVerificacion->fetchColumn();
 
+        if ($registrosReferenciados > 0) {
+            $response -> getBody() ->write(json_encode("El inquilino no puede eliminarse porque está referenciado en la tabla 'reservas'."));
+            return $response->withStatus(409); // Conflicto
+                            
+        }else{
+                $query = $connection->prepare('DELETE FROM inquilinos WHERE id =:id');
+                $query->bindParam(':id', $id, PDO::PARAM_INT);
+                $query->execute();
+
+                $deletedRows = $query->rowCount();
+
+                if ($deletedRows > 0) {
+                    $response -> getBody() -> write(json_encode("Inquilino eliminado con exito"));
+                    return $response->withStatus(200);
+                } else {
+                    $response -> getBody() -> write(json_encode("Inquilino no encontrado"));
+                    return $response->withStatus(404); // No encontrado
+                }
+        }
+    } catch (Exception $e) {
+            $response->getBody()->write(json_encode(['Error'=>$e->getMessage()]));
+            return $response->withStatus(500);
+                }
+});
 
 /*
 $app->get('/propiedades', function (Request $request, Response $response){
@@ -1016,6 +1000,259 @@ $app -> post('/propiedades', function (Request $request, Response $response){
         
 
 });
+
+$app->put('/propiedades/{id}', function(Request $request,Response $response){    
+
+    try{
+
+        $errores = [];
+        $connection = getConnection();
+
+        $id = $request->getAttribute('id');
+        $params = $request->getParsedBody();
+
+        $stmt = $connection->prepare("SELECT * FROM propiedades WHERE id = :id");
+        $stmt->bindParam(':id',$id);
+        $stmt->execute();
+
+        //chequeo que exista el id de la propiedad
+        if($stmt->rowCount() == 0){
+
+            $errores[] = "No existe una propiedad con el id " . $id;
+
+        }
+
+        //chequeo que ninguno de los campos que mando para modificar este vacio
+        $keys = ["domicilio","localidad_id","cantidad_huespedes","cochera","cantidad_dias","cantidad_banios","cantidad_habitaciones","fecha_inicio_disponibilidad","cantidad_dias","disponible","valor_noche","tipo_propiedad_id","imagen","tipo_imagen"];
+        $emptyFields = [];
+    
+        //mientras exista la calve y este vacio, la agrego a emptyFields.
+        foreach ($keys as $key) {
+            if (isset($params[$key]) && empty($params[$key])) {
+                $emptyFields[] = $key;
+            }
+        }
+        
+        //si habia un cambio vacio, no entra, y envia caul es.
+        if(!count($emptyFields) == 0){
+            $errores[] = "Los siguientes campos estan vacios: " . implode(", ",$emptyFields);
+        }
+
+
+        if(empty($errores)){
+
+            $localidadExiste = isset($params['localidad_id']);
+            //chequeo si traje un valor en el campo documento, en caso de hacerlo, chequeo si ya esta en la base de datos.
+            if($localidadExiste){
+
+                $stmtLocalidad = $connection->prepare("SELECT COUNT(*) FROM localidades WHERE id = :localidad_id");
+                $stmtLocalidad->bindParam(':localidad_id',$params['localidad_id']);
+                $stmtLocalidad->execute();
+                $localidadSigo = $stmtLocalidad->fetchColumn() > 0;
+                
+            } else {
+                $localidadSigo = true;
+            }
+
+            if($localidadSigo){
+                
+                $propiedadExiste = isset($params['tipo_propiedad_id']);
+
+                if($propiedadExiste){
+
+                    $stmtPropiedad = $connection->prepare("SELECT COUNT(*) FROM tipo_propiedades WHERE id = :tipo_propiedad_id");
+                    $stmtPropiedad->bindParam(':tipo_propiedad_id',$params['tipo_propiedad_id']);
+                    $stmtPropiedad->execute();
+                    $propiedadSigo = $stmtPropiedad->fetchColumn() > 0;
+                    
+                } else {
+                    $propiedadSigo = true;
+                }
+
+                if($propiedadSigo){
+
+                    $sql = "UPDATE propiedades SET ";
+
+                    foreach ($params as $campo => $valor) {
+                        $sql .= "`$campo` = :$campo, ";
+                    }
+
+                    // eliminamos la coma al final
+                    $sql = rtrim($sql, ', ');
+
+                    $sql .= " WHERE id = :id";
+
+                    $stmt = $connection->prepare($sql);
+
+                    //vinculo los valores a los parámetros
+                    $stmt->bindParam(':id', $id);
+                    foreach ($params as $campo => $valor) {
+                        $stmt->bindParam(":$campo", $params[$campo]);
+                    }
+
+                    $stmt->execute();
+                    
+                    $payload = json_encode([
+                        'message' => 'El inquilino con id '.$id." actualizo los siguientes datos correctamente!",
+                        'status' => 'success',
+                        'code' => 200,
+                        'data' => $params
+                    ]);
+
+                    $response->withHeader('Content+Type','application/json');
+
+                } else {
+
+                    $errores[] = "El tipo de propiedad no encuentra en la base de datos.";
+                }
+            
+            } else {
+                $errores[] = "La localidad no encuentra en la base de datos.";
+            }
+        } 
+
+    } catch (PDOException $e){
+        
+        $errores[] = "PDOException";
+        //preguntar si deberia agregar algo
+
+    }
+
+    if(!empty($errores)){
+
+        $payload = json_encode([
+            'status' => 'Error',
+            'code' => 400,
+            'message' => $errores
+        ]);
+
+        $response->withHeader('Content-Type','application/json');
+
+    }
+
+    $response->getBody()->write($payload);
+    return $response;
+
+});
+
+$app->delete('/propiedades/{id}', function (Request $request, Response $response) {
+    
+    $id = (int) $request->getAttribute('id');
+    try {
+    $connection = getConnection();
+        
+        
+    $consultaVerificacion = $connection->prepare('SELECT COUNT(*) FROM reservas WHERE propiedad_id = :id');
+    $consultaVerificacion->bindParam(':id', $id, PDO::PARAM_INT);
+    $consultaVerificacion->execute();
+    
+    $registrosReferenciados = $consultaVerificacion->fetchColumn();
+
+        if ($registrosReferenciados > 0) {
+            $response -> getBody() ->write(json_encode("La propiedad no puede eliminarse porque está referenciado en la tabla 'reservas'."));
+            return $response->withStatus(409); // Conflicto
+                            
+        }else{
+                $query = $connection->prepare('DELETE FROM propiedades WHERE id =:id');
+                $query->bindParam(':id', $id, PDO::PARAM_INT);
+                $query->execute();
+
+                $deletedRows = $query->rowCount();
+
+                if ($deletedRows > 0) {
+                    $response -> getBody() -> write(json_encode("Propiedad eliminada con exito"));
+                    return $response->withStatus(200);
+                } else {
+                    $response -> getBody() -> write(json_encode("Propiedad no encontrada"));
+                    return $response->withStatus(404); // No encontrado
+                }
+        }
+    } catch (Exception $e) {
+            $response->getBody()->write(json_encode(['Error'=>$e->getMessage()]));
+            return $response->withStatus(500);
+                }
+});
+
+
+$app -> get ('/reservas', function (Request $request, Response $response){
+    $connection = getConnection();
+    try{
+        $query = $connection->query('SELECT * FROM reservas res 
+                                    INNER JOIN propiedades p ON res.propiedad_id = p.id
+                                    INNER JOIN inquilinos inq ON res.inquilino_id = inq.id');
+        $tipos = $query -> fetchAll(PDO::FETCH_ASSOC);
+
+        $payload = json_encode([
+            'status'=> 'success',
+            'code' => 200,
+            'data'=> $tipos
+        ]);
+
+        $response -> getBody() -> write ($payload);
+        return $response -> withHeader ('Content+Type', 'application/json');
+    } catch (PDOException $e){
+        $payload = json_encode([
+            'status'=> 'ERROR',
+            'code'=> 400,
+        ]);
+    
+        $response ->getBody()->write ($payload);
+        return $response -> withHeader('Content-Type','application/json');
+    }
+});
+
+
+
+
+$app->get('/propiedades', function (Request $request, Response $response){
+            
+    $connection = getConnection();
+    
+    try{
+
+
+        $params = $request->getQueryParams();
+        
+        $sql = 'SELECT p.*, l.nombre AS localidad, tp.nombre AS tipo_de_propiedad
+        FROM propiedades p
+        INNER JOIN localidades l ON p.localidad_id = l.id
+        INNER JOIN tipo_propiedades tp ON p.tipo_propiedad_id = tp.id
+        WHERE 1 = 1';
+
+        foreach($params as $campo => $valor){
+            $sql .= " AND p.`$campo` = :$campo ";
+        }
+        
+        $stmt = $connection->prepare($sql);
+        foreach ($params as $campo => $valor) {
+            $stmt->bindParam(":$campo", $params[$campo]);
+        }
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+         
+
+        $payload = json_encode([
+            'status'=> 'success',
+            'code'=> 200,
+            'data'=> $data
+        ]);
+        
+        $response ->getBody()->write($payload);
+        return $response -> withHeader ('Content+Type','application/json');
+
+} catch (PDOException $e){
+    $payload = json_encode([
+        'status'=> 'error',
+        'code'=> 400,
+    ]);
+
+    $response ->getBody()->write ($payload);
+    return $response -> withHeader('Content-Type','application/json');
+} 
+
+});
+
+
 
 $app->run();
 
