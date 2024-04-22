@@ -45,6 +45,7 @@ $app->get('/',function (Request $request, Response $response){
 });
 
 
+//TIPOS_PROPIEDAD
 
 $app->get('/tipos_propiedad',function (Request $request, Response $response){
     try{
@@ -266,6 +267,8 @@ $app->delete('/tipos_propiedad/{id}', function (Request $request, Response $resp
             return $response->withStatus(500);
                 }
 });
+
+//LOCALIDADES
 
 $app->get('/localidades',function (Request $request, Response $response){
    
@@ -492,6 +495,8 @@ $app->delete('/localidades/{id}', function (Request $request, Response $response
             return $response->withStatus(500);
                 }
 });
+
+//INQUILINOS
 
 $app->get('/inquilinos',function (Request $request, Response $response){
   
@@ -838,42 +843,34 @@ $app->delete('/inquilinos/{id}', function (Request $request, Response $response)
                 }
 });
 
-/*
+//PROPIEDADES
+
 $app->get('/propiedades', function (Request $request, Response $response){
             
     $connection = getConnection();
     
     try{
 
-        $dataParams = $request->getParams();
-        $dataToBind = [];
-        $sql = 'SELECT p.id idprop FROM propiedades p
-                           INNER JOIN localidades l ON p.localidad_id = l.id
-                            INNER JOIN tipo_propiedades tp ON p.tipo_propiedad_id = tp.id WHERE 1 = 1 ');
 
-        //Verificar que por ejemplo disponible exista
-        //si existe entonces agrego a la consulta sql and p.disponible = :disponible 
-        //y en array de datatobind pusheamos el dato a bindear
-        //$dataToBind.push({attr: ':disponible', $disponible})
-        //Despues que verifico cada parametro de la url
-        // hacer un for de la variable $dataToBind y por cada valor hacer el             $stmt->bindParam(':nombre',$nombre,PDO::PARAM_STR);
-     
-        $disponible = $request->getAttribute('disponible');
-        $localidad_id = $request->getAttribute('localidad_id');
-        $fecha_inicio_disponibilidad = $request->getAttribute('fecha_inicio_disponibilidad');
-        $cantidad_huespedes = $request->getAttribute('cantidad_huespedes');
+        $params = $request->getQueryParams();
+        
+        $sql = 'SELECT p.*, l.nombre AS localidad, tp.nombre AS tipo_de_propiedad
+        FROM propiedades p
+        INNER JOIN localidades l ON p.localidad_id = l.id
+        INNER JOIN tipo_propiedades tp ON p.tipo_propiedad_id = tp.id
+        WHERE 1 = 1';
 
-        $query = $connection->prepare("SELECT * FROM propiedades p
-                                        INNER JOIN localidades l ON p.localidad_id = l.id
-                                        INNER JOIN tipo_propiedades tp ON p.tipo_propiedad_id = tp.id
-                                        WHERE p.disponible = ?
-                                        AND p.localidad_id = ?
-                                        AND p.fecha_inicio_disponibilidad >= ?
-                                        AND p.cantidad_huespedes >= ?");
-
-        $query->execute([$disponible,$localidad_id,$fecha_inicio_disponibilidad,$cantidad_huespedes]);
-
-        $data = $query -> fetchAll(PDO::FETCH_ASSOC);      
+        foreach($params as $campo => $valor){
+            $sql .= " AND p.`$campo` = :$campo ";
+        }
+        
+        $stmt = $connection->prepare($sql);
+        foreach ($params as $campo => $valor) {
+            $stmt->bindParam(":$campo", $params[$campo]);
+        }
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+         
 
         $payload = json_encode([
             'status'=> 'success',
@@ -884,18 +881,16 @@ $app->get('/propiedades', function (Request $request, Response $response){
         $response ->getBody()->write($payload);
         return $response -> withHeader ('Content+Type','application/json');
 
-} catch (PDOException $e){
-    $payload = json_encode([
-        'status'=> 'error',
-        'code'=> 400,
-    ]);
+    } catch (PDOException $e){
+        $payload = json_encode([
+            'status'=> 'error',
+            'code'=> 400,
+        ]);
 
     $response ->getBody()->write ($payload);
     return $response -> withHeader('Content-Type','application/json');
-} 
+    } 
 });
-*/
-
 
 $app -> post('/propiedades', function (Request $request, Response $response){
 
@@ -1173,6 +1168,7 @@ $app->delete('/propiedades/{id}', function (Request $request, Response $response
                 }
 });
 
+//RESERVAS
 
 $app -> get ('/reservas', function (Request $request, Response $response){
     $connection = getConnection();
@@ -1201,56 +1197,119 @@ $app -> get ('/reservas', function (Request $request, Response $response){
     }
 });
 
+$app->post('/reservas', function (Request $request, Response $response) {
+    try {
+        $connection = getConnection();
 
-
-
-$app->get('/propiedades', function (Request $request, Response $response){
-            
-    $connection = getConnection();
+        $params = $request -> getParsedBody();
+        
+        $requiredKeys = ["propiedad_id","inquilino_id","fecha_desde","cantidad_noches"];
+        $missingKeys = [];
     
-    try{
-
-
-        $params = $request->getQueryParams();
-        
-        $sql = 'SELECT p.*, l.nombre AS localidad, tp.nombre AS tipo_de_propiedad
-        FROM propiedades p
-        INNER JOIN localidades l ON p.localidad_id = l.id
-        INNER JOIN tipo_propiedades tp ON p.tipo_propiedad_id = tp.id
-        WHERE 1 = 1';
-
-        foreach($params as $campo => $valor){
-            $sql .= " AND p.`$campo` = :$campo ";
+        foreach($requiredKeys as $key){
+            if(!array_key_exists($key, $params)){
+                $missingKeys[] = $key;
+            }else{
+                $value=$params[$key];
+                if(empty($value)){
+                    $missingKeys[] = $key; //las agrego al array
+                }
+            }
         }
-        
-        $stmt = $connection->prepare($sql);
-        foreach ($params as $campo => $valor) {
-            $stmt->bindParam(":$campo", $params[$campo]);
+
+        // Si faltan campos requeridos, devuelve un mensaje de error
+        if (!empty($missingKeys)) {
+            $payload = json_encode([
+                'message' => 'Faltan los siguientes campos obligatorios: ' . implode(', ', $missingKeys),
+                'status' => 'Error',
+                'code' => 400,
+            ]);
+            $response->getBody()->write($payload);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
+
+        // Consulta para verificar la disponibilidad de la propiedad
+        $stmt = $connection->prepare("SELECT disponible
+                                     FROM propiedades 
+                                     WHERE id = :propiedad_id
+                                     AND disponible = true");
+        $stmt->bindParam(':propiedad_id', $params['propiedad_id']);
         $stmt->execute();
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-         
 
+        // Si la propiedad está disponible
+        if ($stmt->rowCount() > 0) {
+            // Obtener el valor de la noche
+            $stmt = $connection->prepare("SELECT valor_noche FROM propiedades WHERE id = :propiedad_id");
+            $stmt->bindParam(':propiedad_id', $params['propiedad_id']);
+            $stmt->execute();
+
+            if ($stmt->rowCount() > 0) {
+                $propiedad = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (isset($propiedad['valor_noche'])) {
+                    $valor_total = $params['cantidad_noches'] * $propiedad['valor_noche'];
+                    $params['valor_total'] = $valor_total;
+                }
+            }
+
+            // Verificar si el inquilino está activo
+            $stmt = $connection->prepare("SELECT * FROM inquilinos WHERE id = :inquilino_id AND activo = true");
+            $stmt->bindParam(':inquilino_id', $params['inquilino_id']);
+            $stmt->execute();
+
+            // Si el inquilino está activo, inserta la reserva en la base de datos
+            if ($stmt->rowCount() > 0) {
+                $stmt = $connection->prepare("INSERT INTO reservas(propiedad_id,inquilino_id,fecha_desde,cantidad_noches,valor_total)
+                                            VALUES (:propiedad_id, :inquilino_id, :fecha_desde, :cantidad_noches, :valor_total)");
+                $stmt->bindParam(':propiedad_id', $params['propiedad_id']);
+                $stmt->bindParam(':inquilino_id', $params['inquilino_id']);
+                $stmt->bindParam(':fecha_desde', $params['fecha_desde']);
+                $stmt->bindParam(':cantidad_noches', $params['cantidad_noches']);
+                $stmt->bindParam(':valor_total', $params['valor_total']);
+                $stmt->execute();
+
+                // Respuesta exitosa
+                $payload = json_encode([
+                    'message' => 'La reserva se insertó en la base de datos correctamente.',
+                    'status' => 'success',
+                    'code' => 201,
+                    'data' => $params
+                ]);
+                $response->getBody()->write($payload);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+            } else {
+                // Inquilino no activo
+                $payload = json_encode([
+                    'message' => 'El inquilino no está activo o no existe.',
+                    'status' => 'Error',
+                    'code' => 400,
+                ]);
+                $response->getBody()->write($payload);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+        } else {
+            // Propiedad no disponible
+            $payload = json_encode([
+                'message' => 'La propiedad no está disponible para la fecha seleccionada o no existe.',
+                'status' => 'Error',
+                'code' => 400,
+            ]);
+            $response->getBody()->write($payload);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+    } catch (PDOException $e) {
+        // Error de base de datos
         $payload = json_encode([
-            'status'=> 'success',
-            'code'=> 200,
-            'data'=> $data
+            'message' => 'Error de base de datos: ' . $e->getMessage(),
+            'status' => 'Error',
+            'code' => 500,
         ]);
-        
-        $response ->getBody()->write($payload);
-        return $response -> withHeader ('Content+Type','application/json');
-
-} catch (PDOException $e){
-    $payload = json_encode([
-        'status'=> 'error',
-        'code'=> 400,
-    ]);
-
-    $response ->getBody()->write ($payload);
-    return $response -> withHeader('Content-Type','application/json');
-} 
-
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
 });
+
+
 
 
 
