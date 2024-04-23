@@ -534,23 +534,28 @@ $app->get('/inquilinos/{id}',function (Request $request, Response $response){
 
         $connection = getConnection();
         $id = $request->getAttribute('id');
-        $query = $connection->prepare("SELECT * FROM inquilinos WHERE id = ?");
-        $query->execute([$id]);
+        $stmt = $connection->prepare("SELECT * FROM inquilinos WHERE id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
 
-        $inquilinos = $query -> fetchAll(PDO::FETCH_ASSOC);
-        
-        $json = json_encode([
-            'status' => 'success',
-            'code' => 200,
-            'data' => $inquilinos
+        if ($stmt->rowCount() > 0) {
 
-        ]);
+            $inquilinos = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-        $json = json_encode($inquilinos);
+            $payload = json_encode([
+                'status' => 'success',
+                'code' => 200,
+                'data' => $inquilinos
+    
+            ]);
 
+            $response -> getBody() -> write($payload);
+            return $response->withStatus(200);
 
-        $response ->getBody()->write($json);
-        return $response -> withHeader('Content+Type','application/json');
+        } else {
+            $response -> getBody() -> write(json_encode("Inquilino no encontrado"));
+            return $response->withStatus(404); // No encontrado
+        }
     
     } catch (PDOException $e){
         $json = json_encode([
@@ -564,6 +569,54 @@ $app->get('/inquilinos/{id}',function (Request $request, Response $response){
     }
 });
 
+$app->get('/inquilinos/{id}/reservas',function (Request $request, Response $response){
+    
+
+    try{
+
+        $connection = getConnection();
+        $id = $request->getAttribute('id');
+        $stmt = $connection->prepare("SELECT * FROM inquilinos WHERE id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+
+            $inquilino = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+
+            $stmt = $connection->prepare("SELECT * FROM reservas WHERE inquilino_id = :id");
+            $stmt->bindParam(':id',$id,PDO::PARAM_INT);
+            $stmt->execute();
+
+            $reservas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+
+            $payload = json_encode([
+                'status' => 'success',
+                'code' => 200,
+                'inquilino' => $inquilino,
+                'reservas' => $reservas
+    
+            ]);
+
+            $response -> getBody() -> write($payload);
+            return $response->withStatus(200);
+
+        } else {
+            $response -> getBody() -> write(json_encode("Inquilino no encontrado"));
+            return $response->withStatus(404); // No encontrado
+        }
+    
+    } catch (PDOException $e){
+        $json = json_encode([
+            'status' => 'error',
+            'code' => 400,
+        ]);
+
+        $response->getBody()->write($json);
+        return $response-> withHeader('Content-Type','application/json');
+
+    }
+});
 
 $app->post('/inquilinos',function(Request $request,Response $response){
         
@@ -1558,9 +1611,4 @@ $app->delete('/reservas/{id}', function (Request $request, Response $response) {
 });
 
 
-
-
 $app->run();
-
-
-
