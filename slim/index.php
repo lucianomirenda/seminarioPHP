@@ -654,10 +654,12 @@ $app->post('/inquilinos',function(Request $request,Response $response){
         
     }
 
-    if ($params['activo'] === 'true') {
-        $params['activo'] = 1;
-    } else if ($params['activo'] === 'false'){
-        $params['activo'] = 0;
+    if(isset($params['activo'])){
+        if ($params['activo'] === 'true') {
+            $params['activo'] = 1;
+        } else if ($params['activo'] === 'false'){
+            $params['activo'] = 0;
+        }
     }
 
     $maxChars = [
@@ -1004,10 +1006,12 @@ $app->post('/propiedades',function(Request $request,Response $response){
         
     }
 
-    if ($params['disponible'] === 'true') {
-        $params['disponible'] = 1;
-    } else if ($params['disponible'] === 'false'){
-        $params['disponible'] = 0;
+    if(isset($params['disponible'])){
+        if ($params['disponible'] === 'true') {
+            $params['disponible'] = 1;
+        } else if ($params['disponible'] === 'false'){
+            $params['disponible'] = 0;
+        }
     }
 
     $noRequiredKeys = ["cantidad_habitaciones","cantidad_banios","cochera","imagen","tipo_imagen"];
@@ -1018,12 +1022,13 @@ $app->post('/propiedades',function(Request $request,Response $response){
         } 
     }
 
-    if ($params['cochera'] === 'true') {
-        $params['cochera'] = 1;
-    } else if ($params['cochera'] === 'false'){
-        $params['cochera'] = 0;
+    if(isset($params['cochera'])){
+        if ($params['cochera'] === 'true') {
+            $params['cochera'] = 1;
+        } else if ($params['cochera'] === 'false'){
+            $params['cochera'] = 0;
+        }
     }
-
 
     try{
 
