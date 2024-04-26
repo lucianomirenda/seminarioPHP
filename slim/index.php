@@ -988,6 +988,40 @@ $app->get('/propiedades', function (Request $request, Response $response){
     } 
 });
 
+$app->get('/propiedades/{id}',function (Request $request, Response $response){
+
+    try{
+
+        $connection = getConnection();
+        $id = $request->getAttribute('id');
+        $stmt = $connection->prepare("SELECT * FROM propiedades WHERE id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'data' => $data
+        ]);
+                
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content+Type', 'application/json');
+				
+    } catch (PDOException $e){
+        
+        $payload = json_encode([
+            'message' => 'Error de base de datos: ' . $e->getMessage(),
+            'status' => 'Error',
+            'code' => 500,
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+	} 
+});
+
 $app->post('/propiedades',function(Request $request,Response $response){
     
     $params = $request->getParsedBody();
