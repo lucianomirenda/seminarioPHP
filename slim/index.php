@@ -640,40 +640,70 @@ $app->post('/inquilinos',function(Request $request,Response $response){
     
     $params = $request->getParsedBody();
     
-    $requiredKeys = ["nombre","apellido","documento","email","activo"];
     $error = [];   
 
-    foreach ($requiredKeys as $key) {
-        if (!array_key_exists($key, $params)) {
-            $error[$key] = "No está definido.";
-        } else {
-            if (empty($params[$key])){
-                var_dump($params[$key]); die;
-                $error[$key] = "Está vacío.";
-            }
-        }
-        
-    }
     
-    if(isset($params['activo'])){
-        if ($params['activo'] === 'true') {
-            $params['activo'] = 1;
-        } else if ($params['activo'] === 'false'){
-            $params['activo'] = 0;
+    if (!isset($params['nombre'])) {
+        $error['nombre'] = "El campo no está definido.";
+    
+    } else {
+    
+        if (empty($params['nombre'])) {
+            $error['nombre'] = "El campo está vacío."; 
+            
+        } else if (strlen($params['nombre']) > 25) {
+            $error['nombre'] = "El campo contiene más caracteres de los permitidos."; 
         }
-    }
+    } 
 
-    $maxChars = [
-        "nombre" => 25,
-        "apellido" => 15,
-        "email" => 20
-    ];
-		
-    foreach ($params as $key => $value) {
-        if (isset($maxChars[$key]) && strlen($value) > $maxChars[$key]) {
-            $error[$key] = "Supera el máximo de caracteres: ($maxChars[$key]).";
+    if (!isset($params['apellido'])) {
+        $error['apellido'] = "El campo no está definido.";
+    
+    } else {
+    
+        if (empty($params['apellido'])) {
+            $error['apellido'] = "El campo está vacío."; 
+            
+        } else if (strlen($params['apellido']) > 15) {
+            $error['apellido'] = "El campo contiene más caracteres de los permitidos."; 
         }
-    }
+    } 
+    
+    if (!isset($params['documento'])) {
+        $error['documento'] = "El campo no está definido.";
+    
+    } else {
+    
+        if (empty($params['documento'])) {
+            $error['documento'] = "El campo está vacío."; 
+            
+        } else if (strlen($params['documento']) > 25) {
+            $error['documento'] = "El campo contiene más caracteres de los permitidos."; 
+        }
+    } 
+
+    if (!isset($params['email'])) {
+        $error['email'] = "El campo no está definido.";
+    
+    } else {
+    
+        if (empty($params['email'])) {
+            $error['email'] = "El campo  está vacío."; 
+            
+        } else if (strlen($params['email']) > 20) {
+            $error['email'] = "El campo contiene más caracteres de los permitidos."; 
+        }
+    } 
+    
+    if (!isset($params['activo'])) {
+        $error['activo'] = "El campo no está definido.";
+    
+    } else {
+    
+        if ($params['activo']==="") {
+            $error['activo'] = "El campo está vacío.";  
+        } 
+    } 
 
     try{
     
@@ -737,28 +767,54 @@ $app->put('/inquilinos/{id}',function(Request $request,Response $response){
 
     $id = $request->getAttribute('id');
     $params = $request->getParsedBody();
-    $keys = ["nombre","apellido","documento","email","activo"];
     $error = [];
 
-
-    foreach ($keys as $key) {
-        if (isset($params[$key]) && empty($params[$key])) {
-            $error[$key] = "Está vacío.";
+    if (isset($params['nombre'])) {
+    
+        if (empty($params['nombre'])) {
+            $error['nombre'] = "El campo está vacío."; 
+            
+        } else if (strlen($params['nombre']) > 25) {
+            $error['nombre'] = "El campo contiene más caracteres de los permitidos."; 
         }
-        
-    }
+    } 
 
-    $maxChars = [
-        "nombre" => 25,
-        "apellido" => 15,
-        "email" => 20
-    ];
-		
-    foreach ($params as $key => $value) {
-        if (isset($maxChars[$key]) && strlen($value) > $maxChars[$key]) {
-            $error[$key] = "Supera el máximo de caracteres: ($maxChars[$key]).";
+    if (isset($params['apellido'])) {
+    
+        if (empty($params['apellido'])) {
+            $error['apellido'] = "El campo está vacío."; 
+            
+        } else if (strlen($params['apellido']) > 15) {
+            $error['apellido'] = "El campo contiene más caracteres de los permitidos."; 
         }
-    }
+    } 
+    
+    if (isset($params['documento'])) {
+    
+        if (empty($params['documento'])) {
+            $error['documento'] = "El campo está vacío."; 
+            
+        } else if (strlen($params['documento']) > 25) {
+            $error['documento'] = "El campo contiene más caracteres de los permitidos."; 
+        }
+    } 
+
+    if (isset($params['email'])) {
+    
+        if (empty($params['email'])) {
+            $error['email'] = "El campo  está vacío."; 
+            
+        } else if (strlen($params['email']) > 20) {
+            $error['email'] = "El campo contiene más caracteres de los permitidos."; 
+        }
+    } 
+    
+    if (isset($params['activo'])) {
+    
+        if ($params['activo']==="") {
+            $error['activo'] = "El campo está vacío.";  
+        } 
+    } 
 
     try{
     
@@ -803,11 +859,7 @@ $app->put('/inquilinos/{id}',function(Request $request,Response $response){
         }	      
 
         if(isset($params['activo'])){
-            if ($params['activo'] === 'true') {
-                $sql .= ' activo = 1,';
-            } else if ($params['activo'] === 'false'){
-                $sql .= ' activo = 0,';
-            }
+            $sql .= "activo = :activo, ";
         }	   
 
         $sql = rtrim($sql, ', ');
@@ -832,7 +884,11 @@ $app->put('/inquilinos/{id}',function(Request $request,Response $response){
 
         if(isset($params['email'])){
             $stmt->bindParam(":email", $params['email']);
-        }	      
+        }	
+        
+        if(isset($params['activo'])){
+            $stmt->bindParam(":activo", $params['activo']);
+        }
 
 
         $stmt->execute();
