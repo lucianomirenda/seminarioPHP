@@ -1181,23 +1181,13 @@ $app->post('/propiedades',function(Request $request,Response $response){
         $error['cochera'] = "El campo esta vacío.";
     } 
 
-    
-    $imagenData = null;
-    $tipoImagen = null;
+    if (isset($params['imagen'])&& ($params['imagen'] === "")) {
+        $error['imagen'] = "El campo esta vacío.";
+    } 
 
-    if (isset($params['imagen']) && !empty($params['imagen'])) {
-        // Verificar si la cadena es una imagen Base64 válida
-        if (preg_match('/^data:image\/(\w+);base64,/', $params['imagen'], $matches)) {
-            $tipoImagen = $matches[1];
-            $imagenData = base64_decode(substr($params['imagen'], strpos($params['imagen'], ',') + 1));
-
-            if ($imagenData === false) {
-                $error['imagen'] = 'Error al decodificar la imagen Base64';
-            }
-        } else {
-            $error['imagen'] = 'Formato de imagen Base64 inválido';
-        }
-    }
+    if (isset($params['tipo_imagen'])&& ($params['tipo_imagen'] === "")) {
+        $error['tipo_imagen'] = "El campo esta vacío.";
+    } 
 
     try{
 
@@ -1246,8 +1236,8 @@ $app->post('/propiedades',function(Request $request,Response $response){
         $stmt->bindParam(':disponible',$disponible);
         $stmt->bindParam(':valor_noche',$params['valor_noche']);
         $stmt->bindParam(':tipo_propiedad_id',$params['tipo_propiedad_id']);
-        $stmt->bindParam(':imagen', $imagenData, PDO::PARAM_LOB);
-        $stmt->bindParam(':tipo_imagen', $tipoImagen, PDO::PARAM_STR);
+        $stmt->bindParam(':imagen', $params['imagen']);
+        $stmt->bindParam(':tipo_imagen', $params['tipo_imagen']);
         $stmt->execute();
       
         $payload = json_encode([
@@ -1328,22 +1318,6 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
         $error['imagen'] = "El campo esta vacío.";
     }
     
-    $imagenData = null;
-    $tipoImagen = null;
-
-    if (isset($params['imagen']) && !empty($params['imagen'])) {
-        // Verificar si la cadena es una imagen Base64 válida
-        if (preg_match('/^data:image\/(\w+);base64,/', $params['imagen'], $matches)) {
-            $tipoImagen = $matches[1];
-            $imagenData = base64_decode(substr($params['imagen'], strpos($params['imagen'], ',') + 1));
-
-            if ($imagenData === false) {
-                $error['imagen'] = 'Error al decodificar la imagen Base64';
-            }
-        } else {
-            $error['imagen'] = 'Formato de imagen Base64 inválido';
-        }
-    }
 
     try{
 
@@ -1494,11 +1468,11 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
         }
 
         if(isset($params['imagen'])){
-            $stmt->bindParam(':imagen', $imagenData, PDO::PARAM_LOB);
+            $stmt->bindParam(':imagen', $params['imagen']);
         }
 
         if(isset($params['tipo_imagen'])){
-            $stmt->bindParam(':tipo_imagen', $tipoImagen, PDO::PARAM_STR);
+            $stmt->bindParam(':tipo_imagen', $params['tipo_imagen']);
         }
 
         $stmt->execute();
