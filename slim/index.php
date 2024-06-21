@@ -461,7 +461,7 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
         $stmt->execute();
 
         $payload = json_encode([
-            'message' => 'El tipo de propiedad se inserto correctamente',
+            'message' => 'El tipo de propiedad se edito correctamente',
             'status' => 'success',
             'code' => 200,
         ]);
@@ -1045,13 +1045,19 @@ $app->get('/propiedades', function (Request $request, Response $response){
     } 
 });
 
+
 $app->get('/propiedades/{id}',function (Request $request, Response $response){
 
     try{
 
         $connection = getConnection();
         $id = $request->getAttribute('id');
-        $stmt = $connection->prepare("SELECT * FROM propiedades WHERE id = :id");
+        $stmt = $connection->prepare("SELECT p.*, l.nombre AS localidad, tp.nombre AS tipo_de_propiedad
+                FROM propiedades p
+                INNER JOIN localidades l ON p.localidad_id = l.id
+                INNER JOIN tipo_propiedades tp ON p.tipo_propiedad_id = tp.id
+                WHERE p.id = :id");
+                
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         
@@ -1176,12 +1182,21 @@ $app->post('/propiedades',function(Request $request,Response $response){
     } 
 
     
-    if (isset($params['imagen'])&& empty($params['imagen'])) {
-        $error['imagen'] = "El campo esta vacío.";
-    }
-    
-    if (isset($params['tipo_imagen'])&& empty($params['tipo_imagen'])) {
-        $error['tipo_imagen'] = "El campo esta vacío.";
+    $imagenData = null;
+    $tipoImagen = null;
+
+    if (isset($params['imagen']) && !empty($params['imagen'])) {
+        // Verificar si la cadena es una imagen Base64 válida
+        if (preg_match('/^data:image\/(\w+);base64,/', $params['imagen'], $matches)) {
+            $tipoImagen = $matches[1];
+            $imagenData = base64_decode(substr($params['imagen'], strpos($params['imagen'], ',') + 1));
+
+            if ($imagenData === false) {
+                $error['imagen'] = 'Error al decodificar la imagen Base64';
+            }
+        } else {
+            $error['imagen'] = 'Formato de imagen Base64 inválido';
+        }
     }
 
     try{
@@ -1214,17 +1229,8 @@ $app->post('/propiedades',function(Request $request,Response $response){
 
         }
         
-        if(!empty($error)){
-
-            $payload = json_encode([
-                'status' => 'Error',
-                'code' => 400,
-                'data' => $error
-            ]);
-        
-            $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json');
-        }   
+        $disponible = isset($params['disponible']) ? 1 : 0;
+        $cochera = isset($params['cochera']) ? 1 : 0;
       
         $stmt = $connection->prepare("INSERT INTO propiedades(domicilio,localidad_id,cantidad_habitaciones,cantidad_banios,cochera,cantidad_huespedes,fecha_inicio_disponibilidad,cantidad_dias,disponible,valor_noche,tipo_propiedad_id,imagen,tipo_imagen)
                                     VALUES (:domicilio, :localidad_id, :cantidad_habitaciones, :cantidad_banios, :cochera, :cantidad_huespedes, :fecha_inicio_disponibilidad, :cantidad_dias, :disponible, :valor_noche, :tipo_propiedad_id, :imagen, :tipo_imagen)");
@@ -1233,15 +1239,15 @@ $app->post('/propiedades',function(Request $request,Response $response){
         $stmt->bindParam(':localidad_id',$params['localidad_id']);
         $stmt->bindParam(':cantidad_habitaciones',$params['cantidad_habitaciones']);
         $stmt->bindParam(':cantidad_banios',$params['cantidad_banios']);
-        $stmt->bindParam(':cochera',$params['cochera']);
+        $stmt->bindParam(':cochera', $cochera);
         $stmt->bindParam(':cantidad_huespedes',$params['cantidad_huespedes']);
         $stmt->bindParam(':fecha_inicio_disponibilidad',$params['fecha_inicio_disponibilidad']);
         $stmt->bindParam(':cantidad_dias',$params['cantidad_dias']);
-        $stmt->bindParam(':disponible',$params['disponible']);
+        $stmt->bindParam(':disponible',$disponible);
         $stmt->bindParam(':valor_noche',$params['valor_noche']);
         $stmt->bindParam(':tipo_propiedad_id',$params['tipo_propiedad_id']);
-        $stmt->bindParam(':imagen',$params['imagen']);
-        $stmt->bindParam(':tipo_imagen',$params['tipo_imagen']);
+        $stmt->bindParam(':imagen', $imagenData, PDO::PARAM_LOB);
+        $stmt->bindParam(':tipo_imagen', $tipoImagen, PDO::PARAM_STR);
         $stmt->execute();
       
         $payload = json_encode([
@@ -1285,7 +1291,7 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
         $error['fecha_inicio_disponibilidad'] = "El campo esta vacío.";
     } 
 
-    if (isset($params['cantidad_habitaciones'])&& empty($params['cantidad_habitaciones'])) {
+    if (isset($params['cantidad_habitaciones']) && empty($params['cantidad_habitaciones'])) {
         $error['cantidad_habitaciones'] = "El campo esta vacío.";
     } 
 
@@ -1322,8 +1328,21 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
         $error['imagen'] = "El campo esta vacío.";
     }
     
-    if (isset($params['tipo_imagen'])&& empty($params['tipo_imagen'])) {
-        $error['tipo_imagen'] = "El campo esta vacío.";
+    $imagenData = null;
+    $tipoImagen = null;
+
+    if (isset($params['imagen']) && !empty($params['imagen'])) {
+        // Verificar si la cadena es una imagen Base64 válida
+        if (preg_match('/^data:image\/(\w+);base64,/', $params['imagen'], $matches)) {
+            $tipoImagen = $matches[1];
+            $imagenData = base64_decode(substr($params['imagen'], strpos($params['imagen'], ',') + 1));
+
+            if ($imagenData === false) {
+                $error['imagen'] = 'Error al decodificar la imagen Base64';
+            }
+        } else {
+            $error['imagen'] = 'Formato de imagen Base64 inválido';
+        }
     }
 
     try{
@@ -1355,7 +1374,7 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
             }
 
         }
-        
+
         if(!empty($error)){
 
             $payload = json_encode([
@@ -1475,11 +1494,11 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
         }
 
         if(isset($params['imagen'])){
-            $stmt->bindParam(":imagen", $params['imagen']);
+            $stmt->bindParam(':imagen', $imagenData, PDO::PARAM_LOB);
         }
 
         if(isset($params['tipo_imagen'])){
-            $stmt->bindParam(":tipo_imagen", $params['tipo_imagen']);
+            $stmt->bindParam(':tipo_imagen', $tipoImagen, PDO::PARAM_STR);
         }
 
         $stmt->execute();
