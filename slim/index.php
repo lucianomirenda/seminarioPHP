@@ -345,7 +345,7 @@ $app->post('/tipos_propiedad',function(Request $request,Response $response){
         $payload = json_encode([
             'status' => 'Error',
             'code' => 400,
-            'data' => $error
+            'error' => $error
         ]);
         $response->getBody()->write($payload);   
         return $response->withHeader('Content-Type', 'application/json'); 
@@ -366,7 +366,7 @@ $app->post('/tipos_propiedad',function(Request $request,Response $response){
             $payload = json_encode([
                 'status' => 'Error',
                 'code' => 400,
-                'data' => $error
+                'error' => $error
             ]);
                             
             $response->getBody()->write($payload);   
@@ -427,7 +427,7 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
         $payload = json_encode([
             'status' => 'Error',
             'code' => 400,
-            'data' => $error
+            'error' => $error
         ]);
         $response->getBody()->write($payload);   
         return $response->withHeader('Content-Type', 'application/json'); 
@@ -448,7 +448,7 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
             $payload = json_encode([
                 'status' => 'Error',
                 'code' => 400,
-                'data' => $error
+                'error' => $error
             ]);
                             
             $response->getBody()->write($payload);   
@@ -1560,9 +1560,11 @@ $app->get('/reservas',function (Request $request, Response $response){
     try{
 
         $connection = getConnection();
-        $query = $connection->query('SELECT * FROM reservas res 
-                                    INNER JOIN propiedades p ON res.propiedad_id = p.id
-                                    INNER JOIN inquilinos inq ON res.inquilino_id = inq.id');
+        $query = $connection->query('SELECT r.*, i.apellido AS apellido_inquilino, i.nombre AS nombre_inquilino, l.nombre AS localidad, t.nombre AS tipo_de_propiedad, p.domicilio FROM reservas r 
+        INNER JOIN inquilinos i ON r.inquilino_id = i.id 
+        INNER JOIN propiedades p ON r.propiedad_id = p.id
+        INNER JOIN localidades l ON p.localidad_id = l.id 
+        INNER JOIN tipo_propiedades t ON p.tipo_propiedad_id = t.id');
         $data = $query -> fetchAll(PDO::FETCH_ASSOC);
 
         $payload = json_encode([
@@ -1642,7 +1644,7 @@ $app->post('/reservas',function(Request $request,Response $response){
             $payload = json_encode([
                 'status' => 'Error',
                 'code' => 400,
-                'data' => $error
+                'message' => ['error' => $error]
             ]);
         
             $response->getBody()->write($payload);   
@@ -1714,7 +1716,7 @@ $app->put('/reservas/{id}',function(Request $request,Response $response){
             $payload = json_encode([
                 'status' => 'Error',
                 'code' => 400,
-                'data' => $error
+                'message' => ['error' => $error]
             ]);
 
             $response->getBody()->write($payload);
@@ -1765,12 +1767,12 @@ $app->put('/reservas/{id}',function(Request $request,Response $response){
             $payload = json_encode([
                 'status' => 'Error',
                 'code' => 400,
-                'data' => $error
+                'message' => ['error' => $error]
             ]);
         
             $response->getBody()->write($payload);   
             return $response->withHeader('Content-Type', 'application/json');
-        }   
+        }    
     
         if(isset($params['cantidad_noches'])){
 
@@ -1828,7 +1830,7 @@ $app->put('/reservas/{id}',function(Request $request,Response $response){
         $payload = json_encode([
                 'message' => 'La reserva actualizo correctamente.',
                 'status' => 'success',
-                'code' => 200
+                'code' => 200 
         ]);
         
         $response->getBody()->write($payload);
