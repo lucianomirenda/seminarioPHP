@@ -55,7 +55,7 @@ $app->get('/localidades',function (Request $request, Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
                 
     } catch (PDOException $e){
         
@@ -66,7 +66,7 @@ $app->get('/localidades',function (Request $request, Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } 
 });
 
@@ -99,7 +99,7 @@ $app->post('/localidades',function(Request $request,Response $response){
             'data' => $error
         ]);
         $response->getBody()->write($payload);   
-        return $response->withHeader('Content+Type', 'application/json'); 
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(400); 
     }
          
     try{
@@ -121,7 +121,8 @@ $app->post('/localidades',function(Request $request,Response $response){
             ]);
                             
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content+Type', 'application/json')->withStatus(400); 
+
         }
 
         $stmt = $connection->prepare("INSERT INTO localidades (nombre) VALUES (:nombre)");
@@ -146,7 +147,7 @@ $app->post('/localidades',function(Request $request,Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
   
 });
@@ -181,7 +182,8 @@ $app->put('/localidades/{id}',function(Request $request,Response $response){
             'data' => $error
         ]);
         $response->getBody()->write($payload);   
-        return $response->withHeader('Content+Type', 'application/json'); 
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(400); 
+
     }
          
     try{
@@ -203,7 +205,8 @@ $app->put('/localidades/{id}',function(Request $request,Response $response){
             ]);
                             
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content+Type', 'application/json')->withStatus(400); 
+
         }
 
         $stmt = $connection->prepare("UPDATE localidades SET nombre = :nombre WHERE id = :id");
@@ -218,7 +221,7 @@ $app->put('/localidades/{id}',function(Request $request,Response $response){
         ]);
             
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
   
     } catch (PDOException $e){
   
@@ -229,7 +232,7 @@ $app->put('/localidades/{id}',function(Request $request,Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
   
 });
@@ -256,7 +259,7 @@ $app->delete('/localidades/{id}', function (Request $request, Response $response
 		    ]);
 
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
                             
         } else {
 
@@ -271,7 +274,7 @@ $app->delete('/localidades/{id}', function (Request $request, Response $response
             ]);
 
             $response->getBody()->write($payload);
-            return $response->withHeader('Content+Type', 'application/json');
+            return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
         }
 
     } catch (PDOException $e) {
@@ -304,7 +307,7 @@ $app->get('/tipos_propiedad',function (Request $request, Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
 				
     } catch (PDOException $e){
         
@@ -315,7 +318,7 @@ $app->get('/tipos_propiedad',function (Request $request, Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
 	} 
 });
 
@@ -348,7 +351,7 @@ $app->post('/tipos_propiedad',function(Request $request,Response $response){
             'error' => $error
         ]);
         $response->getBody()->write($payload);   
-        return $response->withHeader('Content-Type', 'application/json'); 
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
     }
          
     try{
@@ -370,7 +373,7 @@ $app->post('/tipos_propiedad',function(Request $request,Response $response){
             ]);
                             
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
         }
 
         $stmt = $connection->prepare("INSERT INTO tipo_propiedades (nombre) VALUES (:nombre)");
@@ -384,7 +387,7 @@ $app->post('/tipos_propiedad',function(Request $request,Response $response){
         ]);
             
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
   
     } catch (PDOException $e){
   
@@ -395,7 +398,7 @@ $app->post('/tipos_propiedad',function(Request $request,Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
   
 });
@@ -430,7 +433,7 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
             'error' => $error
         ]);
         $response->getBody()->write($payload);   
-        return $response->withHeader('Content-Type', 'application/json'); 
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
     }
          
     try{
@@ -452,7 +455,7 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
             ]);
                             
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
         }
 
         $stmt = $connection->prepare("UPDATE tipo_propiedades SET nombre = :nombre WHERE id = :id");
@@ -467,7 +470,7 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
         ]);
             
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
   
     } catch (PDOException $e){
   
@@ -478,7 +481,7 @@ $app->put('/tipos_propiedad/{id}',function(Request $request,Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
   
 });
@@ -505,7 +508,7 @@ $app->delete('/tipos_propiedad/{id}', function (Request $request, Response $resp
 		    ]);
 
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
                             
         } else {
 
@@ -520,7 +523,7 @@ $app->delete('/tipos_propiedad/{id}', function (Request $request, Response $resp
             ]);
 
             $response->getBody()->write($payload);
-            return $response->withHeader('Content+Type', 'application/json');
+            return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
         }
 
     } catch (PDOException $e) {
@@ -553,7 +556,7 @@ $app->get('/inquilinos',function (Request $request, Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
 				
     } catch (PDOException $e){
         
@@ -564,7 +567,7 @@ $app->get('/inquilinos',function (Request $request, Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
 	} 
 });
 
@@ -587,7 +590,7 @@ $app->get('/inquilinos/{id}',function (Request $request, Response $response){
         ]);
                 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
 				
     } catch (PDOException $e){
         
@@ -598,7 +601,7 @@ $app->get('/inquilinos/{id}',function (Request $request, Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
 	} 
 });
 
@@ -621,7 +624,7 @@ $app->get('/inquilinos/{id}/reservas',function (Request $request, Response $resp
         ]);
                 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
 				
     } catch (PDOException $e){
         
@@ -632,7 +635,7 @@ $app->get('/inquilinos/{id}/reservas',function (Request $request, Response $resp
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
 	} 
 });
 
@@ -726,7 +729,7 @@ $app->post('/inquilinos',function(Request $request,Response $response){
             ]);
         
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }   
 			      
         $stmt = $connection->prepare("INSERT INTO inquilinos (nombre,apellido,email,documento,activo)
@@ -746,7 +749,7 @@ $app->post('/inquilinos',function(Request $request,Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
 
     } catch (PDOException $e){
 
@@ -757,7 +760,7 @@ $app->post('/inquilinos',function(Request $request,Response $response){
         ]);
 
 		$response->getBody()->write($payload);
-		return $response->withHeader('Content-Type', 'application/json');
+		return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
 	 }
 
 });
@@ -837,7 +840,7 @@ $app->put('/inquilinos/{id}',function(Request $request,Response $response){
             ]);
         
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }   
 
         $sql = "UPDATE inquilinos SET ";
@@ -900,7 +903,7 @@ $app->put('/inquilinos/{id}',function(Request $request,Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
 
     } catch (PDOException $e){
 
@@ -911,7 +914,7 @@ $app->put('/inquilinos/{id}',function(Request $request,Response $response){
         ]);
 
 		$response->getBody()->write($payload);
-		return $response->withHeader('Content-Type', 'application/json');
+		return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
 	 }
 
 });
@@ -938,7 +941,7 @@ $app->delete('/inquilinos/{id}', function (Request $request, Response $response)
 		    ]);
 
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
                             
         } else {
 
@@ -953,7 +956,7 @@ $app->delete('/inquilinos/{id}', function (Request $request, Response $response)
             ]);
 
             $response->getBody()->write($payload);
-            return $response->withHeader('Content+Type', 'application/json');
+            return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
         }
 
     } catch (PDOException $e) {
@@ -1030,7 +1033,7 @@ $app->get('/propiedades', function (Request $request, Response $response){
         ]);
                 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
                 
     } catch (PDOException $e){
         
@@ -1041,7 +1044,7 @@ $app->get('/propiedades', function (Request $request, Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } 
 });
 
@@ -1070,7 +1073,7 @@ $app->get('/propiedades/{id}',function (Request $request, Response $response){
         ]);
                 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
 				
     } catch (PDOException $e){
         
@@ -1081,7 +1084,7 @@ $app->get('/propiedades/{id}',function (Request $request, Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
 	} 
 });
 
@@ -1218,6 +1221,19 @@ $app->post('/propiedades',function(Request $request,Response $response){
             }
 
         }
+
+        if(!empty($error)){
+
+            $payload = json_encode([
+                'status' => 'Error',
+                'code' => 400,
+                'message' => ['error' => $error]
+            ]);
+
+            $response->getBody()->write($payload);   
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
+        }
+
         
         $disponible = isset($params['disponible']) ? 1 : 0;
         $cochera = isset($params['cochera']) ? 1 : 0;
@@ -1247,7 +1263,7 @@ $app->post('/propiedades',function(Request $request,Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200); ;
 
     } catch (PDOException $e){
 
@@ -1258,7 +1274,7 @@ $app->post('/propiedades',function(Request $request,Response $response){
         ]);
 
 		$response->getBody()->write($payload);
-		return $response->withHeader('Content-Type', 'application/json');
+		return $response->withHeader('Content-Type', 'application/json')->withStatus(500); ;
 	 }
 
 });
@@ -1354,11 +1370,11 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
             $payload = json_encode([
                 'status' => 'Error',
                 'code' => 400,
-                'data' => $error
+                'message' => ['error' => $error]
             ]);
         
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); ;
         }   
       
         $sql = "UPDATE propiedades SET ";
@@ -1484,7 +1500,7 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200); ;
 
     } catch (PDOException $e){
 
@@ -1495,7 +1511,7 @@ $app->put('/propiedades/{id}',function(Request $request,Response $response){
         ]);
 
 		$response->getBody()->write($payload);
-		return $response->withHeader('Content-Type', 'application/json');
+		return $response->withHeader('Content-Type', 'application/json')->withStatus(500); ;
 	 }
 
 });
@@ -1522,7 +1538,7 @@ $app->delete('/propiedades/{id}', function (Request $request, Response $response
 		    ]);
 
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json'); 
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
                             
         } else {
 
@@ -1537,7 +1553,7 @@ $app->delete('/propiedades/{id}', function (Request $request, Response $response
             ]);
 
             $response->getBody()->write($payload);
-            return $response->withHeader('Content+Type', 'application/json');
+            return $response->withHeader('Content+Type', 'application/json')->withStatus(200);
         }
 
     } catch (PDOException $e) {
@@ -1574,7 +1590,7 @@ $app->get('/reservas',function (Request $request, Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200); ;
 				
     } catch (PDOException $e){
         
@@ -1585,7 +1601,7 @@ $app->get('/reservas',function (Request $request, Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500); ;
 	} 
 });
 
@@ -1648,7 +1664,7 @@ $app->post('/reservas',function(Request $request,Response $response){
             ]);
         
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); 
         }   
     
         $stmt = $connection->prepare("SELECT valor_noche FROM propiedades WHERE id = :propiedad_id");
@@ -1675,7 +1691,7 @@ $app->post('/reservas',function(Request $request,Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200); ;
 
     } catch (PDOException $e){
 
@@ -1686,7 +1702,7 @@ $app->post('/reservas',function(Request $request,Response $response){
         ]);
 
 		$response->getBody()->write($payload);
-		return $response->withHeader('Content-Type', 'application/json');
+		return $response->withHeader('Content-Type', 'application/json')->withStatus(500); ;
 	 }
 
 });
@@ -1720,7 +1736,7 @@ $app->put('/reservas/{id}',function(Request $request,Response $response){
             ]);
 
             $response->getBody()->write($payload);
-            return $response->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); ;
 
         }
 
@@ -1771,7 +1787,7 @@ $app->put('/reservas/{id}',function(Request $request,Response $response){
             ]);
         
             $response->getBody()->write($payload);   
-            return $response->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); ;
         }    
     
         if(isset($params['cantidad_noches'])){
@@ -1834,7 +1850,7 @@ $app->put('/reservas/{id}',function(Request $request,Response $response){
         ]);
         
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200); ;
 
     } catch (PDOException $e){
 
@@ -1845,7 +1861,7 @@ $app->put('/reservas/{id}',function(Request $request,Response $response){
         ]);
 
 		$response->getBody()->write($payload);
-		return $response->withHeader('Content-Type', 'application/json');
+		return $response->withHeader('Content-Type', 'application/json')->withStatus(500); ;
 	 }
 
 });
@@ -1876,7 +1892,7 @@ $app->delete('/reservas/{id}',function(Request $request,Response $response){
             ]);
 
             $response->getBody()->write($payload);
-            return $response->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); ;
 
         }
 
@@ -1892,7 +1908,7 @@ $app->delete('/reservas/{id}',function(Request $request,Response $response){
         ]);
 
         $response->getBody()->write($payload);
-        return $response->withHeader('Content+Type', 'application/json');
+        return $response->withHeader('Content+Type', 'application/json')->withStatus(200); ;
 
     } catch (PDOException $e){
 
@@ -1903,7 +1919,7 @@ $app->delete('/reservas/{id}',function(Request $request,Response $response){
         ]);
 
 		$response->getBody()->write($payload);
-		return $response->withHeader('Content-Type', 'application/json');
+		return $response->withHeader('Content-Type', 'application/json')->withStatus(500); ;
 	 }
 
 });
